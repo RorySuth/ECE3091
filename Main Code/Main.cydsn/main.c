@@ -8,7 +8,7 @@ void WheelSettings(int side, int dir, int speed);
 void Drive(int revs, int dir, int speed);
 void Pivot();
 CY_ISR_PROTO(Ultrasonic_Handler);
-void FireUltrasonic(int ultraNo);
+void FireUltrasonic(int ultraNum);
 
 
 /* Global Variables */
@@ -17,6 +17,8 @@ int ultraCounter[2] = {0,0};  //These need to increase to 4 for all 4 ultras
 float ultraDistance[2] = {0,0};
 int controlRegValue = 0;
 char tx[50]; //used for sending things through UART
+int ultraNum = 0;
+int *ultraNumPointer = &ultraNum;
 
 //Under this is old notes, might not be applicable anymore
 //0th bit is the 0th / 1st ultrasonic
@@ -40,12 +42,14 @@ int main()
     //Ok that wasn't actaully that much
     
     // Driving Sequence
+    /*
     WheelSettings(1,0,1);
     WheelSettings(0,0,1);
     Drive(5,1,3); // drive forward, fast speed, 3 revolutions
     Drive(5,-1,3); // drive backwards
     Drive(2,1,3); // Drive forwards, fast speed, 3 revolutions
     Pivot(); // turn around
+    */
     
     for(;;) 
     {
@@ -189,19 +193,20 @@ void Pivot()
 }
 /*--------------------------------------------------------------------------*/
 CY_ISR(Ultrasonic_Handler) {
-    ultraCounter[controlRegValue] = ultraTimer_ReadCapture();
-    ultraDistance[controlRegValue] = (65535-ultraCounter[controlRegValue])/58; //Distance measured in cm
-    sprintf(tx, "Ultra %d = %dcm\r\n", controlRegValue, (int) ultraDistance[controlRegValue]);
+    ultraCounter[ultraNum] = ultraTimer_ReadCapture();
+    ultraDistance[ultraNum] = (65535-ultraCounter[ultraNum])/58; //Distance measured in cm
+    sprintf(tx, "Ultra %d = %dcm\r\n", ultraNum, (int) ultraDistance[ultraNum]);
     UART_PutString(tx);
     
 }
 /*--------------------------------------------------------------------------*/
-void FireUltrasonic(int ultraNo)
+void FireUltrasonic(int localNum)
 // Function to fire a given ultrasonic sensor
 // Input: ultranNo = which ultrasonic sensor is being fired, takes values from 0 to 
 {
-    ultraControl_Write(ultraNo); // write to Mux which ultrasonic to use
-    switch (ultraNo)
+    *ultraNumPointer = localNum; //Passes the value out to the global version of ultraNum
+    ultraControl_Write(localNum); // write to Mux which ultrasonic to use
+    switch (localNum)
     {
         case 0:     
             ultraTrigger_0_Write(1); // starts init pulse
@@ -211,7 +216,7 @@ void FireUltrasonic(int ultraNo)
             break;
         
         case 1:
-     
+            
             ultraTrigger_1_Write(1); // starts init pulse
             CyDelayUs(10);
             ultraTrigger_1_Write(0); // finishes init pulse
