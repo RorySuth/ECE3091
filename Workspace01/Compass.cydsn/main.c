@@ -14,7 +14,8 @@
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
-
+    I2C_Start();
+    
     /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 
     for(;;)
