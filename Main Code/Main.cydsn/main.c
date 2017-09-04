@@ -1,3 +1,4 @@
+
 #include <project.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,6 +17,9 @@ void FireUltrasonic(int ultraNum);
 CY_ISR_PROTO(Ultrasonic_Handler);
 CY_ISR_PROTO(ResetButton_Handler);
 CY_ISR_PROTO(TaskButton_Handler);
+//colour sensing 
+void LEDSequence(); 
+void ColourSensing();
 
 
 /* Global Variables */
@@ -27,6 +31,15 @@ char tx[50]; //used for sending things through UART
 int ultraNum = 0;
 int *ultraNumPointer = &ultraNum;
 int taskNum = 0; // used to keep track of how many times the task button has been pressed, initially goes to task 1
+
+//colour sensing 
+int LightIntensity = 0;
+int AmbientIntensity = 0;
+int RedIntensity = 0;
+int BlueIntensity = 0;
+int GreenIntensity = 0;
+int LargestLightIntensity;
+char LargestColour[10];
 
 /*  Notes
    
@@ -50,7 +63,7 @@ int main()
     return 0;
 }// end main
 /*--------------------------------------------------------------------------*/
-// Function used to control speed and direction of a given wheel
+// (1) Function used to control speed and direction of a given wheel
 void WheelSettings(int side, int dir, int speed)
 {
     /* RIGHT WHEEL */
@@ -114,7 +127,7 @@ void WheelSettings(int side, int dir, int speed)
     }
 } // end WheelSettings
 /*--------------------------------------------------------------------------*/
-// function to make the robot turn 90deg either right of left
+// (2) function to make the robot turn 90deg either right of left
 void Turn(int side)
 {
     // side = which direction to turn; right = 1, left = 0
@@ -152,7 +165,7 @@ void Turn(int side)
       
 } // end Turn
 /*--------------------------------------------------------------------------*/
-// function to make the robot move forwards or backwards at a given speed
+// (3)function to make the robot move forwards or backwards at a given speed
 void Drive(double revs, int dir, int speed)
 {
     int RightCounter = 0;
@@ -186,7 +199,7 @@ void Drive(double revs, int dir, int speed)
     WheelSettings(1,0,1);
 }
 /*--------------------------------------------------------------------------*/
-/*  turns the robot 180deg  */
+/* (4)turns the robot 180deg  */
 void Pivot()
 {
     int LeftCounter = 0;
@@ -235,16 +248,18 @@ CY_ISR(TaskButton_Handler)
             Pivot();
             Drive(1,1,3); // forward for 1*rev, fast
             
-        /*
         case(3):
         // avoids block
-            AvoidBlock();
+           // AvoidBlock();
             break;
-        case(4):
+        
+        case(4): 
         // colour sensing  
-        */
-    
-    
+            while(1){
+                ColourSensing();
+            }
+            break;
+
     }    
     TaskButton_isr_ClearPending();
 }
@@ -261,6 +276,8 @@ CY_ISR(ResetButton_Handler)
     
 }
 /*--------------------------------------------------------------------------*/
+
+/* (5)Fires the ultrasonic  */
 void FireUltrasonic(int localNum)
 // Function to fire a given ultrasonic sensor
 // Input: ultranNo = which ultrasonic sensor is being fired, takes values from 0 to 
@@ -302,7 +319,7 @@ void FireUltrasonic(int localNum)
     }
 }
 /*--------------------------------------------------------------------------*/
-// WORK IN PROGRESS - NOT WORKING YET
+// (6)turns the robot 180deg  */WORK IN PROGRESS - NOT WORKING YET
 void AvoidBlock()
 {
     int initDist = 0; // initial distance detected
@@ -326,6 +343,7 @@ void AvoidBlock()
     
 }
 /*--------------------------------------------------------------------------------*/
+/* (7) */
 double SenseDistChange(int ultraNum, int refDist)
 {
 // returns the change in distance between as a fraction 
@@ -339,7 +357,7 @@ double SenseDistChange(int ultraNum, int refDist)
     return abs(dist - refDist)/refDist;  
  }
  /*-------------------------------------------------------------------------------------*/
-// Start up routine
+// (8) Start up routine
 void Start()
 {
     //Initialising all interrupts
@@ -357,9 +375,16 @@ void Start()
 	LeftQuadDec_Start();
     UART_Start();
     ultraTimer_Start();
+    //ColourSensing
+    TIA_Start();
+    ADC_Start();
+    IDAC_Start();
+    IDAC_SetValue(1);
+    ADC_IRQ_Enable();
+    
 }
 /*--------------------------------------------------------------------------------------*/
-// checks if robot is straight relative to an object using the front two ultrasonic sensors
+// (9) checks if robot is straight relative to an object using the front two ultrasonic sensors
 int isStraight()
 {
     // returns difference in distances measured, i.e. rightDist - leftDist
@@ -374,7 +399,7 @@ int isStraight()
 }
 /*--------------------------------------------------------------------------------------*/
 // straightens robot up relative to an object using the front two sensors (sensors 3 and 4)
-// WORK IN PROGRESS - DOESNT WORK YET
+// (10) WORK IN PROGRESS - DOESNT WORK YET
 void Straighten()
 {
     int diffDist = 0; // difference in distance measured between front two sensors
@@ -391,3 +416,145 @@ void Straighten()
     
 }
 
+/* (11) LEDSequence=======================================================================================
+Variables: 
+**LEDState - 0 (on) & 1 (off)
+ Turns sequence of LEDs on and off 
+*/
+void LEDSequence()
+{
+    // variables & initalisation
+    /*BlueLED_Write(1);
+    GreenLED_Write(1);
+    RedLED_Write(1);*/
+    
+    if(BlueLED_Read() && GreenLED_Read() && RedLED_Read()){//case all off 
+        // all off - Turn blue on  
+        BlueLED_Write(0);
+        //CyDelay(1000); 
+    }
+    
+    else if (~BlueLED_Read() && GreenLED_Read() && RedLED_Read()) {
+        // Turn Blue off and green on 
+        BlueLED_Write(1);
+        GreenLED_Write(0);
+        //CyDelay(1000); 
+    }
+    
+     else if (BlueLED_Read() && ~GreenLED_Read() && RedLED_Read()) {
+        // Turn greeen off and red on 
+        GreenLED_Write(1);
+        RedLED_Write(0);
+       // CyDelay(1000); 
+    }
+    
+     else if(BlueLED_Read() && GreenLED_Read() && ~RedLED_Read()){
+        //Turn red off and all off
+        RedLED_Write(1);
+       // CyDelay(1000); 
+    }
+    
+    else {//error case - turn all LEDS off 
+        BlueLED_Write(1);
+        GreenLED_Write(1);
+        RedLED_Write(1);
+    }
+    
+} 
+ /*end LEDSequence-------------------------------------------------------------------------*/
+
+
+/* (12) ColourSensing=======================================================================================
+detects red, green and blue pucks and calls LEDSequence()
+*/
+void ColourSensing() {
+    //initalise variables 
+    char Tx[50];
+    int colourFlag=0; 
+    int lightThreshold = 2000; //from testing 
+    
+    //turn LEDs off initally 
+    BlueLED_Write(1);
+    GreenLED_Write(1);
+    RedLED_Write(1);
+    
+    CyDelay(1000);//
+        ADC_StartConvert();
+        ADC_IsEndConversion(ADC_WAIT_FOR_RESULT);
+        AmbientIntensity = ADC_Read32();  //Read16 give signed values 
+        sprintf(Tx, "Ambient = %d\r\n", (int) AmbientIntensity);
+        UART_PutString(Tx);
+        
+        //Test colour 
+        LEDSequence(); // Turns on blue
+        ADC_StartConvert();
+        ADC_IsEndConversion(ADC_WAIT_FOR_RESULT);
+        BlueIntensity = ADC_Read32();  //Read16 give signed values 
+        sprintf(Tx, "Blue = %d\r\n", (int) BlueIntensity);
+        UART_PutString(Tx);
+        
+        LEDSequence(); // Turns on green
+        ADC_StartConvert();
+        ADC_IsEndConversion(ADC_WAIT_FOR_RESULT);
+        GreenIntensity = ADC_Read32();  //Read16 give signed values
+        sprintf(Tx, "Green = %d\r\n", (int) GreenIntensity);
+        UART_PutString(Tx);
+        
+        LEDSequence(); // Turns on Red
+        ADC_StartConvert();
+        ADC_IsEndConversion(ADC_WAIT_FOR_RESULT);
+        RedIntensity = ADC_Read32();  //Read16 give signed values 
+        sprintf(Tx, "Red = %d\r\n", (int) RedIntensity);
+        UART_PutString(Tx);
+        
+        LEDSequence(); // Turns all off
+        
+        // Finds the largest colour value
+        if(RedIntensity > BlueIntensity) {
+            sprintf(LargestColour, "Red");
+            LargestLightIntensity = RedIntensity;
+            colourFlag = 1; 
+        }
+        else {
+            sprintf(LargestColour, "Blue");
+            LargestLightIntensity = BlueIntensity;
+            colourFlag = 3;
+        }
+         
+        if(GreenIntensity > LargestLightIntensity) {
+            sprintf(LargestColour, "Green");
+            LargestLightIntensity = GreenIntensity; 
+            colourFlag=2;
+        }
+        
+        //Compares largest colour value with a thresholded ambient value 
+        if(LargestLightIntensity > AmbientIntensity + lightThreshold) {
+        sprintf(Tx, "%s is the highest at = %d\r\n", LargestColour, LargestLightIntensity);
+        UART_PutString(Tx);
+        }
+        else{
+            colourFlag=0;
+        }
+        //feedback LEDS ------------------------------------
+        if(colourFlag == 1){
+            colourFlag =0;
+            RedLED_Write(0);
+            CyDelay(500);
+            RedLED_Write(1);
+        } 
+        if(colourFlag == 2){
+            colourFlag=0;
+            GreenLED_Write(0);
+            CyDelay(500);
+            GreenLED_Write(1);
+        } 
+        if(colourFlag == 3){
+            colourFlag=0;
+            BlueLED_Write(0);
+            CyDelay(500);
+            BlueLED_Write(1);
+        } //--------------------------------------------------[
+        
+
+}
+/*end ColourSensing-------------------------------------------------------------------------*/
