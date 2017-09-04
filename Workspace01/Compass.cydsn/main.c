@@ -12,6 +12,7 @@
 #include "project.h"
 #include "stdio.h"
 #include <math.h>
+#define PI 3.14159265358979323846
 
     int I2CReady;
 
@@ -41,78 +42,106 @@ int main(void)
     int8 * rxPointer = &I2CRXBuffer[0];
     //uint8 xMSB, xLSB, yMSB, yLSB, zMSB, zLSB;
     int16 x,y,z;
+    int16 xCal,yCal,zCal; //Calibration values
+    double direction; //Direction the robot is facing
+    char tx[50];
 
     
-    /* Place your initialization/startup code here (e.g. MyInst_Start()) */
     
-    //Initialise the compass
+    /*--------------------Initialise the compass---------*/
     I2C_MasterSendStart(compassAddress, 0); //Starts communication with the chip in write mode
     I2C_MasterWriteByte(0x00); //Select Config Reg A
-    I2C_MasterWriteByte(0x50); //Selects 4x avgeraging, 15Hz output and normal mode
+    I2C_MasterWriteByte(0x50); //Selects 4x avgeraging, 15Hz output and normal mode (0x51 for self test)
     I2C_MasterSendStop(); //Finishes communications
     
     I2C_MasterSendStart(compassAddress, 0); //Starts communication with the chip in write mode
     I2C_MasterWriteByte(0x01); //Select Config Reg B
-    I2C_MasterWriteByte(0x20); //Select Normal Gain
+    I2C_MasterWriteByte(0x50); //Select Gain +/- 2.5 Ga
     I2C_MasterSendStop(); //Finishes communications
     
     I2C_MasterSendStart(compassAddress, 0); //Starts communication with the chip in write mode
     I2C_MasterWriteByte(0x02); //Selects the mode register
     I2C_MasterWriteByte(0x00); //Selects continuous operation mode
     I2C_MasterSendStop(); //Finishes communications
-    CyDelay(6);
+    CyDelay(1000);
     
-    char tx[50];
+    /*---------Perform self test calibration------*/
+    I2C_MasterSendStart(compassAddress, 0); //Write mode
+    I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
+    I2C_MasterSendStop();
+    
+    I2C_MasterClearStatus(); //Important but not sure why... Doesn't work without it
+    
+    
+    I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER); //Sacrificial Read because the first values are always 0
+    CyDelay(67);
+    I2C_MasterSendStart(compassAddress, 0); //Write mode
+    I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
+    I2C_MasterSendStop();
+    
+    I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER);
+    while (I2CReady == 0){
+        //Wait for interrupt for new data    
+    }
+    I2C_MasterSendStart(compassAddress, 0); //Write mode
+    I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
+    I2C_MasterSendStop();
+    
+    I2C_MasterClearStatus(); //Important but not sure why... Doesn't work without it
+    I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER); //Read Data
+    
+    
+    xCal = concatenate(I2CRXBuffer[0],I2CRXBuffer[1]);
+    yCal = concatenate(I2CRXBuffer[2],I2CRXBuffer[3]);
+    zCal = concatenate(I2CRXBuffer[4],I2CRXBuffer[5]);
+    sprintf(tx, "x = %d\r\n", xCal);
+    UART_PutString(tx);
+    sprintf(tx, "y = %d\r\n", yCal);
+    UART_PutString(tx);
+    sprintf(tx, "z = %d \r\n", zCal);
+    UART_PutString(tx);
+    UART_PutString("\r\n");
+    I2CReady = 0;
+    CyDelay(1000);
     
     for(;;)
    {
-        /*
-        I2C_MasterSendStart(compassAddress, 1); //Start a read
-        xMSB = I2C_MasterReadByte(I2C_ACK_DATA);
-        xLSB = I2C_MasterReadByte(I2C_ACK_DATA);
-        yMSB = I2C_MasterReadByte(I2C_ACK_DATA);
-        yLSB = I2C_MasterReadByte(I2C_ACK_DATA);
-        zMSB = I2C_MasterReadByte(I2C_ACK_DATA);
-        zLSB = I2C_MasterReadByte(I2C_ACK_DATA);
-        I2C_MasterSendStop();
-        
-        sprintf(tx, "x = %d\r\n", xMSB);
-        UART_PutString(tx);
-        sprintf(tx, "y = %d\r\n", yMSB);
-        UART_PutString(tx);
-        sprintf(tx, "z = %d\r\n", zMSB);
-        UART_PutString(tx);
-        
-        
-        CyDelay(1000);
-        */
-        
-        
- 
         while (I2CReady == 0){
-            
+            //Wait for interrupt for new data    
         }
         
         I2C_MasterSendStart(compassAddress, 0); //Write mode
         I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
         I2C_MasterSendStop();
         
-        I2C_MasterClearStatus();
-        I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER);
-        //point the compass back to the first output reg
-
+        I2C_MasterClearStatus(); //Important but not sure why... Doesn't work without it
+        I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER); //Read Data
         
-
-        
+        //Turn data into values
         x = concatenate(I2CRXBuffer[0],I2CRXBuffer[1]);
         y = concatenate(I2CRXBuffer[2],I2CRXBuffer[3]);
         z = concatenate(I2CRXBuffer[4],I2CRXBuffer[5]);
+        
+        direction = atan2(y,x);
+        //direction += 
+        if (direction < 0) {
+            direction += 2*PI;
+        }
+        
+        direction = direction * 180 / PI;
+        
+        //Now adjust for magnetic deinclination
+        //Use http://www.magnetic-declination.com/ to get the angle
+        //Ours is 11 degrees 44 minutes
+        //Convert to degrees 11.73
+        
+        direction += 11.73;
         
         sprintf(tx, "x = %d\r\n", x);
         UART_PutString(tx);
         sprintf(tx, "y = %d\r\n", y);
         UART_PutString(tx);
-        sprintf(tx, "z = %d\r\n", z);
+        sprintf(tx, "direction = %d \r\n", (int) direction);
         UART_PutString(tx);
         UART_PutString("\r\n");
         
