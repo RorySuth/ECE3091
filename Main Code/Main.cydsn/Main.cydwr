@@ -3363,8 +3363,8 @@
     </Group>
   </Group>
   <Group key="Interrupt">
-    <Data key="7db7ed6a-fa94-48ad-b91e-51a84b121334" value="2" />
-    <Data key="ae0bbdca-8da4-45d0-9712-5f03db52a7a0" value="1" />
+    <Data key="7db7ed6a-fa94-48ad-b91e-51a84b121334" value="1" />
+    <Data key="ae0bbdca-8da4-45d0-9712-5f03db52a7a0" value="2" />
     <Data key="da0ac3bb-fac7-40f0-928c-5c2759ad90be" value="0" />
   </Group>
   <Group key="Pin2">

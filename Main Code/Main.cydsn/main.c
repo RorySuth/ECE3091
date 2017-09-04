@@ -45,7 +45,7 @@ int main()
 {
     Start();
     for(;;)
-    {
+    { 
     }
     return 0;
 }// end main
@@ -157,7 +157,7 @@ void Drive(double revs, int dir, int speed)
 {
     int RightCounter = 0;
     int LeftCounter = 0;
-    int counter = revs*14550; // converts number of revolutions required to a shaft encoder counter value
+    int counter = revs*OneRev; // converts number of revolutions required to a shaft encoder counter value
     int FlagCheckInc; // how many counts between each wheel lag check
     int FlagCheck = 250; // when to first start checking for wheel lag
     RightQuadDec_SetCounter(0);
@@ -211,38 +211,54 @@ CY_ISR(Ultrasonic_Handler) {
 /*--------------------------------------------------------------------------*/
 CY_ISR(TaskButton_Handler)
 {
+    // DEBUGGING CODE
+    /*
+    Pin_LED_Write(1);
+    CyDelay(10);
+    Pin_LED_Write(0);
+    */
     
     if (taskNum < 2){taskNum++;} // increment task number counter to go to next task 
     else {taskNum = 1;} // if at task 4 go back to task 1
 
     switch(taskNum)
     {
+        // Drives forward, then back
         case(1):
 
-            Drive(3,1,3); // drives forward for 3*revs, at fastest speed
-            //Drive(3,-1,3); // drives backwards for 3*revs at fastest speed
+            Drive(2,1,3); // forward for 2*revs, fast
+            Drive(2,-1,3); // reverse for 2*revs, fast
             break;
+        // Drives forwards, then pivots, then drives forward back to base
         case(2):
-            Drive(3,-1,3); // drives forward for 3*revs, at fastest speed
-            break;
+            Drive(2,1,3); // forward for 2*revs, fast
+            Pivot();
+            Drive(1,1,3); // forward for 1*rev, fast
+            
         /*
         case(3):
         // avoids block
             AvoidBlock();
             break;
         case(4):
-        // colour sensing   
-    */
+        // colour sensing  
+        */
+    
+    
     }    
+    TaskButton_isr_ClearPending();
 }
 /*--------------------------------------------------------------------------*/
 CY_ISR(ResetButton_Handler)
 {
     // resets code when reset button is pressed
+    
     Pin_LED_Write(1);
     CyDelay(10);
     Pin_LED_Write(0);
+    ResetButton_isr_ClearPending();
     CySoftwareReset();
+    
 }
 /*--------------------------------------------------------------------------*/
 void FireUltrasonic(int localNum)
@@ -286,6 +302,7 @@ void FireUltrasonic(int localNum)
     }
 }
 /*--------------------------------------------------------------------------*/
+// WORK IN PROGRESS - NOT WORKING YET
 void AvoidBlock()
 {
     int initDist = 0; // initial distance detected
@@ -330,6 +347,9 @@ void Start()
     TaskButton_isr_StartEx(TaskButton_Handler);
     ResetButton_isr_StartEx(ResetButton_Handler);
     echo_isr_StartEx(Ultrasonic_Handler);
+    TaskButton_isr_ClearPending();
+    ResetButton_isr_ClearPending();
+    echo_isr_ClearPending();
 
     //Initialising all modules
     PWM_Start();
@@ -354,6 +374,7 @@ int isStraight()
 }
 /*--------------------------------------------------------------------------------------*/
 // straightens robot up relative to an object using the front two sensors (sensors 3 and 4)
+// WORK IN PROGRESS - DOESNT WORK YET
 void Straighten()
 {
     int diffDist = 0; // difference in distance measured between front two sensors
