@@ -1403,6 +1403,7 @@ Workspace01/Compass.cydsn/CortexM3/ARM_GCC_493/Debug/compassInterruptPin.o
 Workspace01/Compass.cydsn/CortexM3/ARM_GCC_493/Debug/compassInterruptPin.lst
 Workspace01/Compass.cydsn/CortexM3/ARM_GCC_493/Debug/CompassInterrupt.o
 Workspace01/Compass.cydsn/CortexM3/ARM_GCC_493/Debug/CompassInterrupt.lst
+<<<<<<< HEAD
 Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/ultraEcho_2.o
 Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/ultraEcho_2.lst
 Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/TaskButton_isr.o
@@ -1479,3 +1480,7 @@ Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/ultraTrigger_2.o
 Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/ultraTrigger_2.lst
 Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/ultraEcho_3.o
 Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/ultraEcho_3.lst
+=======
+Workspace01/Compass.cydsn/CortexM3/ARM_GCC_493/Debug/REBUILD.log
+ColourSensor.cydsn/ColourSensor-000.cywrk.Rory1
+>>>>>>> 8de21c5c4c2cbf69dab3d17b3510854f0122a157
