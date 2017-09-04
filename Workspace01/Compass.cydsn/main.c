@@ -13,7 +13,9 @@
 #include "stdio.h"
 #include <math.h>
 
-uint16 concatenate(uint8 MSB, uint8 LSB) {
+    int I2CReady;
+
+int16 concatenate(uint8 MSB, uint8 LSB) {
     uint16 var;
         var = MSB;
         var = var << 8;
@@ -21,17 +23,25 @@ uint16 concatenate(uint8 MSB, uint8 LSB) {
     return var;       
 }
 
+CY_ISR(CompassInterruptHandler) {
+    CompassInterrupt_ClearPending();
+    
+    I2CReady = 1; //Lets the pooling loop know the compass has new values to read
+}
+
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
     I2C_Start();
     UART_Start();
+    CompassInterrupt_StartEx(CompassInterruptHandler);
     
     uint8 compassAddress = 0x1E;
-    uint8 I2CRXBuffer[6];
-    uint8 * rxPointer = &I2CRXBuffer[0];
+    int8 I2CRXBuffer[6] = {0,0,0,0,0,0};
+    int8 * rxPointer = &I2CRXBuffer[0];
     //uint8 xMSB, xLSB, yMSB, yLSB, zMSB, zLSB;
-    uint16 x,y,z;
+    int16 x,y,z;
+
     
     /* Place your initialization/startup code here (e.g. MyInst_Start()) */
     
@@ -55,7 +65,7 @@ int main(void)
     char tx[50];
     
     for(;;)
-    {
+   {
         /*
         I2C_MasterSendStart(compassAddress, 1); //Start a read
         xMSB = I2C_MasterReadByte(I2C_ACK_DATA);
@@ -78,12 +88,20 @@ int main(void)
         */
         
         
+ 
+        while (I2CReady == 0){
+            
+        }
+        
         I2C_MasterSendStart(compassAddress, 0); //Write mode
         I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
-        I2C_MasterSendStop(); 
+        I2C_MasterSendStop();
         
         I2C_MasterClearStatus();
-        I2C_MasterReadBuf(compassAddress, rxPointer, 0x06, I2C_MODE_COMPLETE_XFER);
+        I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER);
+        //point the compass back to the first output reg
+
+        
 
         
         x = concatenate(I2CRXBuffer[0],I2CRXBuffer[1]);
@@ -96,9 +114,13 @@ int main(void)
         UART_PutString(tx);
         sprintf(tx, "z = %d\r\n", z);
         UART_PutString(tx);
-        CyDelay(67);
+        UART_PutString("\r\n");
+        
+        I2CReady = 0;
+        
         
     }
 }
+
 
 /* [] END OF FILE */
