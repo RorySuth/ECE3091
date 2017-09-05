@@ -15,6 +15,7 @@
 #define PI 3.14159265358979323846
 
     int I2CReady;
+    uint8 compassAddress = 0x1E;
 
 int16 concatenate(uint8 MSB, uint8 LSB) {
     uint16 var;
@@ -30,6 +31,12 @@ CY_ISR(CompassInterruptHandler) {
     I2CReady = 1; //Lets the pooling loop know the compass has new values to read
 }
 
+void ResetCompassPointer(){
+    I2C_MasterSendStart(compassAddress, 0); //Write mode
+    I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
+    I2C_MasterSendStop();
+}
+
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
@@ -37,7 +44,7 @@ int main(void)
     UART_Start();
     CompassInterrupt_StartEx(CompassInterruptHandler);
     
-    uint8 compassAddress = 0x1E;
+
     int8 I2CRXBuffer[6] = {0,0,0,0,0,0};
     int8 * rxPointer = &I2CRXBuffer[0];
     //uint8 xMSB, xLSB, yMSB, yLSB, zMSB, zLSB;
@@ -66,34 +73,26 @@ int main(void)
     CyDelay(1000);
     
     /*---------Perform self test calibration------*/
-    I2C_MasterSendStart(compassAddress, 0); //Write mode
-    I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
-    I2C_MasterSendStop();
-    
     I2C_MasterClearStatus(); //Important but not sure why... Doesn't work without it
-    
-    
     I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER); //Sacrificial Read because the first values are always 0
     CyDelay(67);
-    I2C_MasterSendStart(compassAddress, 0); //Write mode
-    I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
-    I2C_MasterSendStop();
+    
+    ResetCompassPointer();
     
     I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER);
     while (I2CReady == 0){
         //Wait for interrupt for new data    
     }
-    I2C_MasterSendStart(compassAddress, 0); //Write mode
-    I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
-    I2C_MasterSendStop();
+    
+    ResetCompassPointer();
     
     I2C_MasterClearStatus(); //Important but not sure why... Doesn't work without it
     I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER); //Read Data
     
     
     xCal = concatenate(I2CRXBuffer[0],I2CRXBuffer[1]);
-    yCal = concatenate(I2CRXBuffer[2],I2CRXBuffer[3]);
-    zCal = concatenate(I2CRXBuffer[4],I2CRXBuffer[5]);
+    zCal = concatenate(I2CRXBuffer[2],I2CRXBuffer[3]);
+    yCal = concatenate(I2CRXBuffer[4],I2CRXBuffer[5]);
     sprintf(tx, "x = %d\r\n", xCal);
     UART_PutString(tx);
     sprintf(tx, "y = %d\r\n", yCal);
@@ -119,8 +118,8 @@ int main(void)
         
         //Turn data into values
         x = concatenate(I2CRXBuffer[0],I2CRXBuffer[1]);
-        y = concatenate(I2CRXBuffer[2],I2CRXBuffer[3]);
-        z = concatenate(I2CRXBuffer[4],I2CRXBuffer[5]);
+        z = concatenate(I2CRXBuffer[2],I2CRXBuffer[3]);
+        y = concatenate(I2CRXBuffer[4],I2CRXBuffer[5]);
         
         direction = atan2(y,x);
         //direction += 
