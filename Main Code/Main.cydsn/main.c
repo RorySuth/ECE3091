@@ -32,7 +32,7 @@ int controlRegValue = 0;
 char tx[50]; //used for sending things through UART
 int ultraNum = 0;
 int *ultraNumPointer = &ultraNum;
-int taskNum = 1; // used to keep track of how many times the task button has been pressed, initially goes to task 1
+int taskNum = 2; // used to keep track of how many times the task button has been pressed, initially goes to task 1
 int taskFlag = 0;
 //colour sensing 
 int LightIntensity = 0;
@@ -42,6 +42,7 @@ int BlueIntensity = 0;
 int GreenIntensity = 0;
 int LargestLightIntensity;
 char LargestColour[10];
+float UltrasonicOffset;
 
 /*  Notes
    
@@ -61,11 +62,10 @@ int main()
     Start();
     for(;;)
     { 
-       if (taskFlag ==1) {
+        if (taskFlag == 1 ) {
+            taskFlag = 0;
             ButtonTasks();
         }
-        isStraight();
-        CyDelay(1000);
     }
     
     return 0;
@@ -406,13 +406,14 @@ float isStraight()
     float leftDist = 0; // distance measured from sensor 2 (front left)
     float rightDist = 0; // distance measured from sensor 3(front right)
     char Tx[50];
+    float temp; 
     
     FireUltrasonic(2);
     leftDist = ultraDistance[2];
     FireUltrasonic(3);
     rightDist = ultraDistance[3];
- 
-    sprintf(Tx, "Right - Left = %d\r\n", (int) (rightDist-leftDist));
+    temp = (rightDist-leftDist)*10000;
+    sprintf(Tx, "Right - Left = %d\r\n", (int) temp);
     UART_PutString(Tx);
     return (rightDist - leftDist);   
 }
@@ -421,29 +422,64 @@ float isStraight()
 // (10) WORK IN PROGRESS - DOESNT WORK YET
 void Straighten()
 {
-
+            LED_Write(1);
+            CyDelay(10);
+            LED_Write(0);
     // if right is in front diffDist -ve
     // if left is in front diffDist +ve
     float diffDist = 0; // difference in distance measured between front two sensors
     int stop = 0; // flag used to stop corrections
-    float threshold =0.5;//change value 
-    float move = 0;
-    
+    float threshold =0.09;//change value 
+    float move = 0.002;
+    int i = 0; // counter to check it doesn't go too much left (too +ve)
+    int j = 0; // counter to check it doesn't go too much right (too -ve)
+    int tooFar = 10;
+    int undoTurn = 13;
     //stop if within threshold because float 
-    diffDist = isStraight(); 
+    
     
     while(stop == 0)
     {
-        if (abs(diffDist) < threshold) {
+        diffDist = isStraight();
+        diffDist = diffDist - UltrasonicOffset;
+        
+        if ((diffDist > -1*threshold) && (diffDist < threshold)) {
             stop=1;
         }
         else if(diffDist>0) {//+ve 
-            move = diffDist/(34);
-            Turn(0,move);
+
+            
+            i++;
+
+            if ((i==tooFar) && (j==0)) // gone too far left, undo it by going right
+            {
+                Turn(1, undoTurn*move);
+                j=0;
+                i=0; 
+            }
+            else
+            {
+                j = 0;
+                Turn(0,move);
+            }
+
         }
         else if (diffDist<0){//-ve
-            move = diffDist/(34);
-            Turn(1,move);
+            
+            j++;
+
+            if ((j==tooFar) && (i==0)) // gone too far right, go left
+            {
+                Turn(0, undoTurn*move);
+                j=0;
+                i=0; 
+            }
+            else
+            {
+                i = 0;
+                Turn(1,move);
+            }
+
         }
         
     }
@@ -622,7 +658,10 @@ void ButtonTasks(){
             //Turn(1,1.004);
             //Turn(1,1.004);
             Pivot();
-            Drive(3.76,1,3); // forward for 3*revs (50cm), fast
+            Straighten();
+            Drive(1,1,3); // forward for 3*revs (50cm), fast
+            Straighten();
+            Drive(2.76,1,3); // forward for 3*revs (50cm), fast
             //Turn(1);
             //Drive(2.9,1,3); // forward for 2.9*rev, fast
             
@@ -631,27 +670,34 @@ void ButtonTasks(){
             LED_Write(1);
             CyDelay(10);
             LED_Write(0);
-            
+            //UltrasonicOffset = isStraight();
+            UltrasonicOffset = -1;
             Drive(1,1,3);
-            isStraight();
+            //Straighten();
             Turn(1,1.004); //Turn right
+            Straighten();
             Drive(2,1,3);
-            isStraight();
+            Straighten();
             Turn(0,1.004); //Turn left
-            Drive(2,1,3);
-            isStraight();
+            Straighten();
+            Drive(2.94,1,3);
+            Straighten();
             Turn(0,1.004); //Turn left
-            Drive(3,1,3);
-            isStraight();
+            Straighten();
+            Drive(4,1,3);
+            Straighten();
             Turn(0,1.004); //Turn left
-            Drive(2,1,3);
-            isStraight();
+            Straighten();
+            Drive(3.61,1,3);
+            Straighten();
             Turn(0,1.004); //Turn left
-            Drive(2,1,3);
-            isStraight();
-            Turn(0,1.004); //Turn left
+            Straighten();
+            Drive(2.27,1,3);
+            Straighten();
+            Turn(1,1.004); //Turn right
+            Straighten();
             Drive(1,1,3);
-            isStraight();
+            
             
            // AvoidBlock();
             break;
