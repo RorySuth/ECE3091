@@ -57,8 +57,10 @@ Under this is old notes, might not be applicable anymore
 int main()
 {
     Start();
+    LED_Write(0);
     for(;;)
     { 
+
     }
     return 0;
 }// end main
@@ -224,6 +226,10 @@ CY_ISR(Ultrasonic_Handler) {
 /*--------------------------------------------------------------------------*/
 CY_ISR(TaskButton_Handler)
 {
+    // The task button allows to move sequentially from task 0 to task 4
+    // you can't move onto the next task until the present task has finished
+    // task 0 is a "rest" mode
+   
     // DEBUGGING CODE
     /*
     Pin_LED_Write(1);
@@ -231,25 +237,34 @@ CY_ISR(TaskButton_Handler)
     Pin_LED_Write(0);
     */
     
-    if (taskNum < 2){taskNum++;} // increment task number counter to go to next task 
+    if (taskNum < 4){taskNum++;} // increment task number counter to go to next task 
     else {taskNum = 1;} // if at task 4 go back to task 1
 
     switch(taskNum)
     {
         // Drives forward, then back
         case(1):
-
+            LED_Write(1);
+            CyDelay(10);
+            LED_Write(0);
             Drive(2,1,3); // forward for 2*revs, fast
             Drive(2,-1,3); // reverse for 2*revs, fast
             break;
+            
         // Drives forwards, then pivots, then drives forward back to base
         case(2):
+            LED_Write(1);
+            CyDelay(10);
+            LED_Write(0);
             Drive(2,1,3); // forward for 2*revs, fast
             Pivot();
             Drive(1,1,3); // forward for 1*rev, fast
             
         case(3):
         // avoids block
+            LED_Write(1);
+            CyDelay(10);
+            LED_Write(0);
            // AvoidBlock();
             break;
         
@@ -268,12 +283,11 @@ CY_ISR(ResetButton_Handler)
 {
     // resets code when reset button is pressed
     
-    Pin_LED_Write(1);
-    CyDelay(10);
-    Pin_LED_Write(0);
+    LED_Write(1);
+    CyDelay(100);
+    LED_Write(0);
     ResetButton_isr_ClearPending();
     CySoftwareReset();
-    
 }
 /*--------------------------------------------------------------------------*/
 
@@ -471,7 +485,7 @@ void ColourSensing() {
     //initalise variables 
     char Tx[50];
     int colourFlag=0; 
-    int lightThreshold = 2000; //from testing 
+    int lightThreshold = 2100; //from testing 
     
     //turn LEDs off initally 
     BlueLED_Write(1);
