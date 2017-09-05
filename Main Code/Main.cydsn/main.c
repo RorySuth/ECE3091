@@ -433,8 +433,8 @@ void Straighten()
     float move = 0.002;
     int i = 0; // counter to check it doesn't go too much left (too +ve)
     int j = 0; // counter to check it doesn't go too much right (too -ve)
-    int tooFar = 10;
-    int undoTurn = 13;
+    int tooFar = 15;
+    int undoTurn = 22;
     //stop if within threshold because float 
     
     
@@ -659,11 +659,14 @@ void ButtonTasks(){
             //Turn(1,1.004);
             Pivot();
             Straighten();
+            Drive(0.5,1,3); // forward for 3*revs (50cm), fast
+            Straighten();
             Drive(1,1,3); // forward for 3*revs (50cm), fast
             Straighten();
-            Drive(2.76,1,3); // forward for 3*revs (50cm), fast
+            Drive(2.26,1,3); // forward for 3*revs (50cm), fast
             //Turn(1);
             //Drive(2.9,1,3); // forward for 2.9*rev, fast
+            break;
             
         case(3):
         // avoids block
@@ -680,23 +683,29 @@ void ButtonTasks(){
             Straighten();
             Turn(0,1.004); //Turn left
             Straighten();
-            Drive(2.94,1,3);
+            Drive(0.5,1,3);
+            Straighten();
+            Drive(2.44,1,3);
             Straighten();
             Turn(0,1.004); //Turn left
             Straighten();
-            Drive(4,1,3);
+            Drive(0.5,1,3);
+            Straighten();
+            Drive(3.5,1,3);
             Straighten();
             Turn(0,1.004); //Turn left
             Straighten();
-            Drive(3.61,1,3);
+            Drive(0.5,1,3);
+            Straighten();
+            Drive(3.11,1,3);
             Straighten();
             Turn(0,1.004); //Turn left
             Straighten();
-            Drive(2.27,1,3);
+            Drive(2.035,1,3);
             Straighten();
             Turn(1,1.004); //Turn right
             Straighten();
-            Drive(1,1,3);
+            Drive(1.5,1,3);
             
             
            // AvoidBlock();
