@@ -330,7 +330,7 @@ void FireUltrasonic(int localNum)
 }
 /*--------------------------------------------------------------------------*/
 // (6)turns the robot 180deg  */WORK IN PROGRESS - NOT WORKING YET
-void AvoidBlock()
+/*void AvoidBlock()
 {
     int initDist = 0; // initial distance detected
     Drive(0.3,1,3); // drive forward for 0.3*revs at medium speed
@@ -352,6 +352,7 @@ void AvoidBlock()
     Drive (2,1,3); // drive forwards   
     
 }
+*/
 /*--------------------------------------------------------------------------------*/
 /* (7) */
 double SenseDistChange(int ultraNum, int refDist)
@@ -423,15 +424,27 @@ void Straighten()
 
     // if right is in front diffDist -ve
     // if left is in front diffDist +ve
-    int diffDist = 0; // difference in distance measured between front two sensors
+    float diffDist = 0; // difference in distance measured between front two sensors
     int stop = 0; // flag used to stop corrections
+    float threshold =0.5;//change value 
+    float move = 0;
     
+    //stop if within threshold because float 
     diffDist = isStraight(); 
     
     while(stop == 0)
     {
-        if (abs(diffDist) < 2) 
-        {stop=1;}
+        if (abs(diffDist) < threshold) {
+            stop=1;
+        }
+        else if(diffDist>0) {//+ve 
+            move = diffDist/(34);
+            Turn(0,move);
+        }
+        else if (diffDist<0){//-ve
+            move = diffDist/(34);
+            Turn(1,move);
+        }
         
     }
     
@@ -618,22 +631,27 @@ void ButtonTasks(){
             LED_Write(1);
             CyDelay(10);
             LED_Write(0);
-            CalibrateUltrasonics();
+            
             Drive(1,1,3);
+            isStraight();
             Turn(1,1.004); //Turn right
             Drive(2,1,3);
+            isStraight();
             Turn(0,1.004); //Turn left
             Drive(2,1,3);
+            isStraight();
             Turn(0,1.004); //Turn left
             Drive(3,1,3);
+            isStraight();
             Turn(0,1.004); //Turn left
             Drive(2,1,3);
+            isStraight();
             Turn(0,1.004); //Turn left
             Drive(2,1,3);
+            isStraight();
             Turn(0,1.004); //Turn left
             Drive(1,1,3);
-            
-            
+            isStraight();
             
            // AvoidBlock();
             break;
@@ -652,7 +670,5 @@ void ButtonTasks(){
 /* (14) CalibrateUltrasonic=======================================================================================
 Gets the fixed difference between the two front ultrasonics to store
 */
-void CalibrateUltrasonics(){
-    
-}
+
 /*end CalibrateUltrasonics---------------------------------------------------------------*/
