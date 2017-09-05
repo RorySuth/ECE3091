@@ -6,12 +6,12 @@
 /* Function Prototypes */
 void Start();
 void AvoidBlock();
-void Turn(int side);
+void Turn(int side, float revs);
 void WheelSettings(int side, int dir, int speed);
 void Drive(double revs, int dir, int speed);
 void Pivot();
 double SenseDistChange(int ultraNum, int refDist);
-int isStraight();
+float isStraight();
 void Straighten();
 void FireUltrasonic(int ultraNum);
 CY_ISR_PROTO(Ultrasonic_Handler);
@@ -19,19 +19,21 @@ CY_ISR_PROTO(ResetButton_Handler);
 CY_ISR_PROTO(TaskButton_Handler);
 //colour sensing 
 void LEDSequence(); 
+void ButtonTasks();
 void ColourSensing();
+void CalibrateUltrasonics();
 
 
 /* Global Variables */
 int OneRev = 14550; // how many shaft encoder counts is one revolution of wheels
-int ultraCounter[2] = {0,0};  //These need to increase to 4 for all 4 ultras
-float ultraDistance[2] = {0,0};
+int ultraCounter[4] = {0,0,0,0};  //These need to increase to 4 for all 4 ultras
+float ultraDistance[4] = {0,0,0,0};
 int controlRegValue = 0;
 char tx[50]; //used for sending things through UART
 int ultraNum = 0;
 int *ultraNumPointer = &ultraNum;
-int taskNum = 0; // used to keep track of how many times the task button has been pressed, initially goes to task 1
-
+int taskNum = 1; // used to keep track of how many times the task button has been pressed, initially goes to task 1
+int taskFlag = 0;
 //colour sensing 
 int LightIntensity = 0;
 int AmbientIntensity = 0;
@@ -57,11 +59,15 @@ Under this is old notes, might not be applicable anymore
 int main()
 {
     Start();
-    LED_Write(0);
     for(;;)
     { 
-
+       if (taskFlag ==1) {
+            ButtonTasks();
+        }
+        isStraight();
+        CyDelay(1000);
     }
+    
     return 0;
 }// end main
 /*--------------------------------------------------------------------------*/
@@ -130,12 +136,15 @@ void WheelSettings(int side, int dir, int speed)
 } // end WheelSettings
 /*--------------------------------------------------------------------------*/
 // (2) function to make the robot turn 90deg either right of left
-void Turn(int side)
+void Turn(int side, float revs)
 {
     // side = which direction to turn; right = 1, left = 0
+    //90 degree turn is 1.004 revs
     int LeftCounter = 0;
     int RightCounter = 0;
-    
+    int counter = revs*OneRev;
+    int FlagCheck = 200;
+    int FlagCheckInc = 200;
     // set up shaft encoders
     LeftQuadDec_SetCounter(0);
     RightQuadDec_SetCounter(0);
@@ -154,14 +163,30 @@ void Turn(int side)
 	        WheelSettings(1,1,3); // set right wheel to spin forwards 
     }
     
-    while (LeftCounter<OneRev)
+    while (LeftCounter < counter)
     {
         LeftCounter = abs(LeftQuadDec_GetCounter());
-    } 
-
-    // stop
-    
-    // adjust for right wheel lagging
+        // Readjusting slower wheel (right wheel), so robot goes straight
+        if (LeftCounter == FlagCheck)
+        {
+            WheelSettings(0,0,1); // turn left wheel off
+            RightCounter = abs(RightQuadDec_GetCounter());
+            
+            // let right wheel catch up
+            while (RightCounter < LeftCounter)
+            {
+                RightCounter = abs(RightQuadDec_GetCounter());
+            }
+            
+            // turn left wheel back on, check which direction it's going
+            if (side == 1) {WheelSettings(0,1,3);}
+            else {WheelSettings(0,-1,3);}
+            
+            FlagCheck += FlagCheckInc;
+        } 
+    }
+        
+    //stop wheels
     WheelSettings(0,0,1); // turn left wheel off
     WheelSettings(1,0,1); // turn right wheel off
       
@@ -170,11 +195,16 @@ void Turn(int side)
 // (3)function to make the robot move forwards or backwards at a given speed
 void Drive(double revs, int dir, int speed)
 {
+// Note approx 1 rev = 17cm movement
+/*Diameter of wheel = 53.76mm => 1 rev = pi*D = 16.9 cm
+3 revs = 75-24 cm travelled = 51cm	=> 17cm per rev
+6 revs = 125 - 24cm travelled = 101cm => 16.8 cm per rev*/
+
     int RightCounter = 0;
     int LeftCounter = 0;
     int counter = revs*OneRev; // converts number of revolutions required to a shaft encoder counter value
-    int FlagCheckInc; // how many counts between each wheel lag check
-    int FlagCheck = 250; // when to first start checking for wheel lag
+    int FlagCheckInc = 200; // how many counts between each wheel lag check
+    int FlagCheck = 200; // when to first start checking for wheel lag
     RightQuadDec_SetCounter(0);
     LeftQuadDec_SetCounter(0);
     WheelSettings(1,dir,speed); // right wheel
@@ -186,8 +216,10 @@ void Drive(double revs, int dir, int speed)
         // Readjusting slower wheel to go straight
         if (LeftCounter == FlagCheck)
         {
-            WheelSettings(0,0,1); // turn left wheel off
+            WheelSettings(0,0,1); // turn right wheel off
             RightCounter = abs(RightQuadDec_GetCounter());
+            
+            // let left wheel catch up
             while (RightCounter < LeftCounter)
             {
                 RightCounter = abs(RightQuadDec_GetCounter());
@@ -209,7 +241,7 @@ void Pivot()
 	WheelSettings(0,1,3); //set left wheel to spin forwards
 	WheelSettings(1,-1,3); // set right wheel to spin backwards
 
-	while (LeftCounter<2*OneRev+1300)
+	while (LeftCounter<2*(OneRev)+1150)
 	{
         LeftCounter = abs(LeftQuadDec_GetCounter());
 	}
@@ -236,47 +268,11 @@ CY_ISR(TaskButton_Handler)
     CyDelay(10);
     Pin_LED_Write(0);
     */
-    
+    TaskButton_isr_ClearPending();
     if (taskNum < 4){taskNum++;} // increment task number counter to go to next task 
     else {taskNum = 1;} // if at task 4 go back to task 1
-
-    switch(taskNum)
-    {
-        // Drives forward, then back
-        case(1):
-            LED_Write(1);
-            CyDelay(10);
-            LED_Write(0);
-            Drive(2,1,3); // forward for 2*revs, fast
-            Drive(2,-1,3); // reverse for 2*revs, fast
-            break;
-            
-        // Drives forwards, then pivots, then drives forward back to base
-        case(2):
-            LED_Write(1);
-            CyDelay(10);
-            LED_Write(0);
-            Drive(2,1,3); // forward for 2*revs, fast
-            Pivot();
-            Drive(1,1,3); // forward for 1*rev, fast
-            
-        case(3):
-        // avoids block
-            LED_Write(1);
-            CyDelay(10);
-            LED_Write(0);
-           // AvoidBlock();
-            break;
-        
-        case(4): 
-        // colour sensing  
-            while(1){
-                ColourSensing();
-            }
-            break;
-
-    }    
-    TaskButton_isr_ClearPending();
+    taskFlag = 1;
+    
 }
 /*--------------------------------------------------------------------------*/
 CY_ISR(ResetButton_Handler)
@@ -399,16 +395,24 @@ void Start()
 }
 /*--------------------------------------------------------------------------------------*/
 // (9) checks if robot is straight relative to an object using the front two ultrasonic sensors
-int isStraight()
+float isStraight()
 {
+
     // returns difference in distances measured, i.e. rightDist - leftDist
-    int leftDist = 0; // distance measured from sensor 3 (front left)
-    int rightDist = 0; // distance measured from sensor 4 (front right)
+    // if right is in front diffDist -ve
+    // if left is in front diffDist +ve
     
+    float leftDist = 0; // distance measured from sensor 2 (front left)
+    float rightDist = 0; // distance measured from sensor 3(front right)
+    char Tx[50];
+    
+    FireUltrasonic(2);
+    leftDist = ultraDistance[2];
     FireUltrasonic(3);
-    leftDist = ultraDistance[3];
-    FireUltrasonic(4);
-    rightDist = ultraDistance[4];
+    rightDist = ultraDistance[3];
+ 
+    sprintf(Tx, "Right - Left = %d\r\n", (int) (rightDist-leftDist));
+    UART_PutString(Tx);
     return (rightDist - leftDist);   
 }
 /*--------------------------------------------------------------------------------------*/
@@ -416,10 +420,13 @@ int isStraight()
 // (10) WORK IN PROGRESS - DOESNT WORK YET
 void Straighten()
 {
+
+    // if right is in front diffDist -ve
+    // if left is in front diffDist +ve
     int diffDist = 0; // difference in distance measured between front two sensors
     int stop = 0; // flag used to stop corrections
     
-    diffDist = isStraight();
+    diffDist = isStraight(); 
     
     while(stop == 0)
     {
@@ -572,3 +579,80 @@ void ColourSensing() {
 
 }
 /*end ColourSensing-------------------------------------------------------------------------*/
+
+
+/* (13) ButtonTasks=======================================================================================
+Deals with the button switch stayyyyyytements
+*/
+void ButtonTasks(){
+    taskFlag = 0;
+    switch(taskNum)
+    {
+        // Drives forward, then back
+        case(1):
+            
+            LED_Write(1);
+            CyDelay(10);
+            LED_Write(0);
+            
+            Drive(3,1,3); // forward for 2*revs, fast
+            Drive(3,-1,3); // reverse for 2*revs, fast
+            break;
+            
+            
+        // Drives forwards, then pivots, then drives forward back to base
+        case(2):
+            LED_Write(1);
+            CyDelay(10);
+            LED_Write(0);
+            Drive(3,1,3); // forward for 3*revs (50cm), fast
+            //Turn(1,1.004);
+            //Turn(1,1.004);
+            Pivot();
+            Drive(3.76,1,3); // forward for 3*revs (50cm), fast
+            //Turn(1);
+            //Drive(2.9,1,3); // forward for 2.9*rev, fast
+            
+        case(3):
+        // avoids block
+            LED_Write(1);
+            CyDelay(10);
+            LED_Write(0);
+            CalibrateUltrasonics();
+            Drive(1,1,3);
+            Turn(1,1.004); //Turn right
+            Drive(2,1,3);
+            Turn(0,1.004); //Turn left
+            Drive(2,1,3);
+            Turn(0,1.004); //Turn left
+            Drive(3,1,3);
+            Turn(0,1.004); //Turn left
+            Drive(2,1,3);
+            Turn(0,1.004); //Turn left
+            Drive(2,1,3);
+            Turn(0,1.004); //Turn left
+            Drive(1,1,3);
+            
+            
+            
+           // AvoidBlock();
+            break;
+        
+        case(4): 
+        // colour sensing  
+            while(taskFlag==0){
+                ColourSensing();
+            }
+
+
+    }    
+}
+/*end ButtonTasks---------------------------------------------------------------*/
+
+/* (14) CalibrateUltrasonic=======================================================================================
+Gets the fixed difference between the two front ultrasonics to store
+*/
+void CalibrateUltrasonics(){
+    
+}
+/*end CalibrateUltrasonics---------------------------------------------------------------*/
