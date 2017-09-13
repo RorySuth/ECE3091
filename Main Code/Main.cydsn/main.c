@@ -32,7 +32,7 @@ int controlRegValue = 0;
 char tx[50]; //used for sending things through UART
 int ultraNum = 0;
 int *ultraNumPointer = &ultraNum;
-int taskNum = 2; // used to keep track of how many times the task button has been pressed, initially goes to task 1
+int taskNum = 0; // used to keep track of how many times the task button has been pressed, initially goes to task 1
 int taskFlag = 0;
 //colour sensing 
 int LightIntensity = 0;
@@ -434,7 +434,7 @@ void Straighten()
     int i = 0; // counter to check it doesn't go too much left (too +ve)
     int j = 0; // counter to check it doesn't go too much right (too -ve)
     int tooFar = 15;
-    int undoTurn = 22;
+    int undoTurn = 36;
     //stop if within threshold because float 
     
     
@@ -541,7 +541,7 @@ void ColourSensing() {
     //initalise variables 
     char Tx[50];
     int colourFlag=0; 
-    int lightThreshold = 2100; //from testing 
+    int lightThreshold = 2300; //from testing 
     
     //turn LEDs off initally 
     BlueLED_Write(1);
@@ -655,14 +655,14 @@ void ButtonTasks(){
             CyDelay(10);
             LED_Write(0);
             Drive(3,1,3); // forward for 3*revs (50cm), fast
-            //Turn(1,1.004);
-            //Turn(1,1.004);
-            Pivot();
-            Straighten();
+            Turn(1,1.004);
+            
+            Turn(1,1.04);
+            //Straighten();
             Drive(0.5,1,3); // forward for 3*revs (50cm), fast
-            Straighten();
+            //Straighten();
             Drive(1,1,3); // forward for 3*revs (50cm), fast
-            Straighten();
+            //Straighten();
             Drive(2.26,1,3); // forward for 3*revs (50cm), fast
             //Turn(1);
             //Drive(2.9,1,3); // forward for 2.9*rev, fast

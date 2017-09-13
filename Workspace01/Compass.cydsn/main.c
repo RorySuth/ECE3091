@@ -70,9 +70,10 @@ int main(void)
     I2C_MasterWriteByte(0x02); //Selects the mode register
     I2C_MasterWriteByte(0x00); //Selects continuous operation mode
     I2C_MasterSendStop(); //Finishes communications
-    CyDelay(1000);
+    CyDelay(6);
     
     /*---------Perform self test calibration------*/
+    /*
     I2C_MasterClearStatus(); //Important but not sure why... Doesn't work without it
     I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER); //Sacrificial Read because the first values are always 0
     CyDelay(67);
@@ -102,51 +103,48 @@ int main(void)
     UART_PutString("\r\n");
     I2CReady = 0;
     CyDelay(1000);
+    */
     
     for(;;)
    {
-        while (I2CReady == 0){
-            //Wait for interrupt for new data    
-        }
-        
-        I2C_MasterSendStart(compassAddress, 0); //Write mode
-        I2C_MasterWriteByte(0x03);  //Points the compasss to the first output register
-        I2C_MasterSendStop();
-        
-        I2C_MasterClearStatus(); //Important but not sure why... Doesn't work without it
-        I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER); //Read Data
-        
-        //Turn data into values
-        x = concatenate(I2CRXBuffer[0],I2CRXBuffer[1]);
-        z = concatenate(I2CRXBuffer[2],I2CRXBuffer[3]);
-        y = concatenate(I2CRXBuffer[4],I2CRXBuffer[5]);
-        
-        direction = atan2(y,x);
-        //direction += 
-        if (direction < 0) {
-            direction += 2*PI;
-        }
-        
-        direction = direction * 180 / PI;
-        
-        //Now adjust for magnetic deinclination
-        //Use http://www.magnetic-declination.com/ to get the angle
-        //Ours is 11 degrees 44 minutes
-        //Convert to degrees 11.73
-        
-        direction += 11.73;
-        
-        sprintf(tx, "x = %d\r\n", x);
-        UART_PutString(tx);
-        sprintf(tx, "y = %d\r\n", y);
-        UART_PutString(tx);
-        sprintf(tx, "direction = %d \r\n", (int) direction);
-        UART_PutString(tx);
-        UART_PutString("\r\n");
-        
-        I2CReady = 0;
-        
-        
+    while (I2CReady == 0){
+        //Wait for interrupt for new data    
+    }
+    
+    ResetCompassPointer();
+    
+    I2C_MasterClearStatus(); //Important but not sure why... Doesn't work without it
+    I2C_MasterReadBuf(compassAddress, (uint8 *) rxPointer, 0x06, I2C_MODE_COMPLETE_XFER); //Read Data
+    
+    //Turn data into values
+    x = concatenate(I2CRXBuffer[0],I2CRXBuffer[1]);
+    z = concatenate(I2CRXBuffer[2],I2CRXBuffer[3]);
+    y = concatenate(I2CRXBuffer[4],I2CRXBuffer[5]);
+    
+    direction = atan2(y,x);
+    //direction += 
+    if (direction < 0) {
+        direction += 2*PI;
+    }
+    
+    direction = direction * 180 / PI;
+    
+    //Now adjust for magnetic deinclination
+    //Use http://www.magnetic-declination.com/ to get the angle
+    //Ours is 11 degrees 44 minutes
+    //Convert to degrees 11.73
+    
+    direction += 11.73;
+    
+    sprintf(tx, "x = %d\r\n", x);
+    UART_PutString(tx);
+    sprintf(tx, "y = %d\r\n", y);
+    UART_PutString(tx);
+    sprintf(tx, "direction = %d \r\n", (int) direction);
+    UART_PutString(tx);
+    UART_PutString("\r\n");
+    
+    I2CReady = 0;
     }
 }
 
