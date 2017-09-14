@@ -1972,3 +1972,27 @@ Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/BUILD.log
 Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/.deps/SOURCE_C__ARM_GCC_GENERIC.P
 Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/.deps/SOURCE_ASM__ARM_GCC_GENERIC.P
 Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/REBUILD.log
+Stepper/Design01.cydsn/codegentemp/StepperPWM_PM.c
+Stepper/Design01.cydsn/codegentemp/StepperPWM.h
+Stepper/Design01.cydsn/codegentemp/StepperPWM.c
+Stepper/Design01.cydsn/codegentemp/StepperCountInterrupt.h
+Stepper/Design01.cydsn/codegentemp/StepperCountInterrupt.c
+Stepper/Design01.cydsn/codegentemp/Pin_1_aliases.h
+Stepper/Design01.cydsn/codegentemp/Pin_1.h
+Stepper/Design01.cydsn/codegentemp/Pin_1.c
+Stepper/Design01.cydsn/Generated_Source/PSoC5/StepperPWM_PM.c
+Stepper/Design01.cydsn/Generated_Source/PSoC5/StepperPWM.h
+Stepper/Design01.cydsn/Generated_Source/PSoC5/StepperPWM.c
+Stepper/Design01.cydsn/Generated_Source/PSoC5/StepperCountInterrupt.h
+Stepper/Design01.cydsn/Generated_Source/PSoC5/StepperCountInterrupt.c
+Stepper/Design01.cydsn/Generated_Source/PSoC5/Pin_1_aliases.h
+Stepper/Design01.cydsn/Generated_Source/PSoC5/Pin_1.h
+Stepper/Design01.cydsn/Generated_Source/PSoC5/Pin_1.c
+Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/StepperPWM_PM.o
+Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/StepperPWM_PM.lst
+Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/StepperPWM.o
+Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/StepperPWM.lst
+Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/StepperCountInterrupt.o
+Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/StepperCountInterrupt.lst
+Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/Pin_1.o
+Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/Pin_1.lst

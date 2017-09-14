@@ -250,6 +250,7 @@
   <Data key="DataVersionKey" value="2" />
   <Group key="DWRInstGuidMapping">
     <Group key="Pin">
+      <Data key="af744b7a-34c9-4d4f-97ed-807f6b1d5304" value="Pin_1" />
       <Data key="c2c9f2e6-61aa-4513-bb31-e76c9507614b" value="StepperDirection" />
       <Data key="e851a3b9-efb8-48be-bbb8-b303b216c393" value="StepperStep" />
     </Group>
@@ -3338,6 +3339,11 @@
     </Group>
   </Group>
   <Group key="Pin2">
+    <Group key="af744b7a-34c9-4d4f-97ed-807f6b1d5304">
+      <Group key="0">
+        <Data key="Port Format" value="1,6" />
+      </Group>
+    </Group>
     <Group key="c2c9f2e6-61aa-4513-bb31-e76c9507614b">
       <Group key="0">
         <Data key="Port Format" value="0,5" />
