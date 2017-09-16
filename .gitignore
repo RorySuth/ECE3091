@@ -1996,3 +1996,43 @@ Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/StepperCountInterrupt.o
 Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/StepperCountInterrupt.lst
 Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/Pin_1.o
 Stepper/Design01.cydsn/CortexM3/ARM_GCC_493/Debug/Pin_1.lst
+Ultrasonics.cydsn/Ultrasonics-000.cywrk.Nicky
+Ultrasonics.cydsn/Ultrasonics-000.cywrk
+Main Code/Main.cydsn/codegentemp/PWM_1_PM.c
+Main Code/Main.cydsn/codegentemp/PWM_1.h
+Main Code/Main.cydsn/codegentemp/PWM_1.c
+Main Code/Main.cydsn/codegentemp/MicroSwitch_isr.h
+Main Code/Main.cydsn/codegentemp/MicroSwitch_isr.c
+Main Code/Main.cydsn/codegentemp/MicroSwitch_aliases.h
+Main Code/Main.cydsn/codegentemp/MicroSwitch.h
+Main Code/Main.cydsn/codegentemp/MicroSwitch.c
+Main Code/Main.cydsn/codegentemp/Clock_3.h
+Main Code/Main.cydsn/codegentemp/Clock_3.c
+Main Code/Main.cydsn/codegentemp/Clock_2.h
+Main Code/Main.cydsn/codegentemp/Clock_2.c
+Main Code/Main.cydsn/Main.cyprj.Nicky
+Main Code/Main.cydsn/Main-000.cywrk.Nicky
+Main Code/Main.cydsn/Generated_Source/PSoC5/PWM_1_PM.c
+Main Code/Main.cydsn/Generated_Source/PSoC5/PWM_1.h
+Main Code/Main.cydsn/Generated_Source/PSoC5/PWM_1.c
+Main Code/Main.cydsn/Generated_Source/PSoC5/MicroSwitch_isr.h
+Main Code/Main.cydsn/Generated_Source/PSoC5/MicroSwitch_isr.c
+Main Code/Main.cydsn/Generated_Source/PSoC5/MicroSwitch_aliases.h
+Main Code/Main.cydsn/Generated_Source/PSoC5/MicroSwitch.h
+Main Code/Main.cydsn/Generated_Source/PSoC5/MicroSwitch.c
+Main Code/Main.cydsn/Generated_Source/PSoC5/Clock_3.h
+Main Code/Main.cydsn/Generated_Source/PSoC5/Clock_3.c
+Main Code/Main.cydsn/Generated_Source/PSoC5/Clock_2.h
+Main Code/Main.cydsn/Generated_Source/PSoC5/Clock_2.c
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/PWM_1_PM.o
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/PWM_1_PM.lst
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/PWM_1.o
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/PWM_1.lst
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/MicroSwitch_isr.o
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/MicroSwitch_isr.lst
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/MicroSwitch.o
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/MicroSwitch.lst
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/Clock_3.o
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/Clock_3.lst
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/Clock_2.o
+Main Code/Main.cydsn/CortexM3/ARM_GCC_493/Debug/Clock_2.lst

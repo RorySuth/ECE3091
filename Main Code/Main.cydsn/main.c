@@ -22,6 +22,10 @@ void LEDSequence();
 void ButtonTasks();
 void ColourSensing();
 void CalibrateUltrasonics();
+//puck collection & straightening
+void AlignPucks();
+void MoveClaw(int clawState);
+
 
 
 /* Global Variables */
@@ -43,6 +47,8 @@ int GreenIntensity = 0;
 int LargestLightIntensity;
 char LargestColour[10];
 float UltrasonicOffset;
+//puck collection & straightening
+int clawState;//1=open & 0=close
 
 /*  Notes
    
@@ -392,6 +398,9 @@ void Start()
     IDAC_Start();
     IDAC_SetValue(1);
     ADC_IRQ_Enable();
+    //puck collection & straightening
+    PWM_1_Start(); 
+    Clock_3_Enable();
     
 }
 /*--------------------------------------------------------------------------------------*/
@@ -629,8 +638,51 @@ void ColourSensing() {
 }
 /*end ColourSensing-------------------------------------------------------------------------*/
 
+ 
 
-/* (13) ButtonTasks=======================================================================================
+/* (13) MoveClaw=======================================================================================
+writes to pwm module to move the servos to open and close the claw
+*/
+
+void MoveClaw(int clawState) {
+    uint16 clawStateWritePeriod_1 = 1800;//start closed
+    uint16 clawStateWritePeriod_2 = 1000;
+    
+    if(clawState ==1 ){//claw open 
+        clawStateWritePeriod_1 = 1000;//duty cycle = 5%
+        clawStateWritePeriod_2 = 1800;
+        
+        PWM_Wakeup(); 
+        PWM_1_WriteCompare1(clawStateWritePeriod_1);
+        PWM_1_WriteCompare2(clawStateWritePeriod_2);
+        PWM_Sleep(); 
+    }
+    else if(clawState ==0){//close claw
+        clawStateWritePeriod_1 = 1800; //duty cycle = 9%
+        clawStateWritePeriod_2 = 1000;
+        
+        PWM_Wakeup(); //use depending on operation of servos 
+        PWM_1_WriteCompare1(clawStateWritePeriod_1);
+        PWM_1_WriteCompare2(clawStateWritePeriod_2);
+        PWM_Sleep(); 
+    }
+}
+/*end MoveClaw-------------------------------------------------------------------------*/
+
+/* (14) AlignPucks=======================================================================================
+straightens pucks in the construction zone by aligning against the wall. When an interrupt is triggered by the microswitch 
+the wall has been reached 
+*/
+void AlignPucks(){
+
+
+}
+
+
+/*end AlignPucks-------------------------------------------------------------------------*/
+
+
+/* (15) ButtonTasks=======================================================================================
 Deals with the button switch stayyyyyytements
 */
 void ButtonTasks(){
@@ -722,7 +774,7 @@ void ButtonTasks(){
 }
 /*end ButtonTasks---------------------------------------------------------------*/
 
-/* (14) CalibrateUltrasonic=======================================================================================
+/* (15) CalibrateUltrasonic=======================================================================================
 Gets the fixed difference between the two front ultrasonics to store
 */
 

@@ -248,6 +248,7 @@
       <Data key="eaee69fa-e29b-4eb4-85e7-753612a5aaca/e979b35e-c089-429a-96bb-6d4d69c94283" value="LeftQuadDec_isr" />
     </Group>
     <Group key="Pin">
+      <Data key="0e5a15ce-060b-4f69-a650-2c34060eeb9c" value="MicroSwitch" />
       <Data key="3c5c9a48-b964-480f-9d37-bab6e70d3c0a" value="RightPhaseB" />
       <Data key="4abf0fbf-a791-4581-92ff-0fc2d693f6ac" value="ultraTrigger_3" />
       <Data key="6bb01acd-549a-4836-8cf6-031263b564da" value="TaskButton" />
@@ -3374,6 +3375,11 @@
     <Data key="da0ac3bb-fac7-40f0-928c-5c2759ad90be" value="0" />
   </Group>
   <Group key="Pin2">
+    <Group key="0e5a15ce-060b-4f69-a650-2c34060eeb9c">
+      <Group key="0">
+        <Data key="Port Format" value="0,2" />
+      </Group>
+    </Group>
     <Group key="3c5c9a48-b964-480f-9d37-bab6e70d3c0a">
       <Group key="0">
         <Data key="Port Format" value="0,7" />
