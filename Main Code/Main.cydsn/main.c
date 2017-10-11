@@ -66,13 +66,18 @@ Under this is old notes, might not be applicable anymore
 int main()
 {
     Start();
-    for(;;)
+    taskNum = 4;
+    while(taskFlag==0){
+                ColourSensing();
+            }
+    /*for(;;)
     { 
         if (taskFlag == 1 ) {
             taskFlag = 0;
             ButtonTasks();
         }
     }
+    */
     
     return 0;
 }// end main
@@ -497,46 +502,50 @@ void Straighten()
 
 /* (11) LEDSequence=======================================================================================
 Variables: 
-**LEDState - 0 (on) & 1 (off)
+**LEDState - 0 (off) & 1 (on)
  Turns sequence of LEDs on and off 
 */
 void LEDSequence()
 {
     // variables & initalisation
-    /*BlueLED_Write(1);
-    GreenLED_Write(1);
-    RedLED_Write(1);*/
+    /*BlueLED_Write(0);
+    GreenLED_Write(0);
+    RedLED_Write(0);*/
+    int blueLED, greenLED, redLED;
+    blueLED = BlueLED_Read();
+    greenLED = GreenLED_Read();
+    redLED = RedLED_Read();
     
-    if(BlueLED_Read() && GreenLED_Read() && RedLED_Read()){//case all off 
+    if(blueLED == 0 && greenLED == 0 && redLED == 0){//case all off 
         // all off - Turn blue on  
-        BlueLED_Write(0);
-        //CyDelay(1000); 
-    }
-    
-    else if (~BlueLED_Read() && GreenLED_Read() && RedLED_Read()) {
-        // Turn Blue off and green on 
         BlueLED_Write(1);
-        GreenLED_Write(0);
         //CyDelay(1000); 
     }
     
-     else if (BlueLED_Read() && ~GreenLED_Read() && RedLED_Read()) {
-        // Turn greeen off and red on 
+    else if (blueLED) {
+        // Turn Blue off and green on 
+        BlueLED_Write(0);
         GreenLED_Write(1);
+        //CyDelay(1000); 
+    }
+    
+     else if (greenLED) {
+        // Turn greeen off and red on 
+        GreenLED_Write(0);
+        RedLED_Write(1);
+       // CyDelay(1000); 
+    }
+    
+     else if(redLED){
+        //Turn red on and all off
         RedLED_Write(0);
        // CyDelay(1000); 
     }
     
-     else if(BlueLED_Read() && GreenLED_Read() && ~RedLED_Read()){
-        //Turn red off and all off
-        RedLED_Write(1);
-       // CyDelay(1000); 
-    }
-    
     else {//error case - turn all LEDS off 
-        BlueLED_Write(1);
-        GreenLED_Write(1);
-        RedLED_Write(1);
+        BlueLED_Write(0);
+        GreenLED_Write(0);
+        RedLED_Write(0);
     }
     
 } 
@@ -553,9 +562,9 @@ void ColourSensing() {
     int lightThreshold = 2300; //from testing 
     
     //turn LEDs off initally 
-    BlueLED_Write(1);
-    GreenLED_Write(1);
-    RedLED_Write(1);
+    BlueLED_Write(0);
+    GreenLED_Write(0);
+    RedLED_Write(0);
     
     CyDelay(1000);//
         ADC_StartConvert();
@@ -617,21 +626,21 @@ void ColourSensing() {
         //feedback LEDS ------------------------------------
         if(colourFlag == 1){
             colourFlag =0;
-            RedLED_Write(0);
-            CyDelay(500);
             RedLED_Write(1);
+            CyDelay(500);
+            RedLED_Write(0);
         } 
         if(colourFlag == 2){
             colourFlag=0;
-            GreenLED_Write(0);
-            CyDelay(500);
             GreenLED_Write(1);
+            CyDelay(500);
+            GreenLED_Write(0);
         } 
         if(colourFlag == 3){
             colourFlag=0;
-            BlueLED_Write(0);
-            CyDelay(500);
             BlueLED_Write(1);
+            CyDelay(500);
+            BlueLED_Write(0);
         } //--------------------------------------------------[
         
 
